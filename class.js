@@ -30,78 +30,77 @@
  * child.getName(); // 'child_name'
  * Child.extra // 1
  */
-define('class', function() {
-	var superRegExp = /\bsuper\b/;
-	var createObject = function() {};
 
-	/**
-	 * Creates a new function that defines super method in the original function.
-	 * @param {Function} func
-	 * @param {Function} superFunc
-	 * @returns {Function}
-	 */
-	function defineSuper(func, superFunc) {
-		return function() {
-			var tmp = this.super;
-			this.super = superFunc;
-			var ret;
-			try {
-				ret = func.apply(this, arguments);
-			} finally {
-				this.super = tmp;
-			}
-			return ret;
-		};
-	};
+var superRegExp = /\bsuper\b/;
+var createObject = function() {};
 
-	/**
-	 * Class with extend capabilities.
-	 * @class Class
-	 */
-	var Class = function() {};
-	var BaseClass = Class;
-
-	/**
-	 * Extends class with new methods and properties and returns a new class.
-	 * @param {Object} [prototype]
-	 * @param {Object} [staticProperties]
-	 * @returns {Function}
-	 */
-	Class.extend = function(prototype, staticProperties) {
-		var Class = function() {
-			if (typeof this.constructor === 'function') {
-				this.constructor.apply(this, arguments);
-			}
-		};
-		createObject.prototype = this.prototype;
-		Class.prototype = new createObject();
-		if (prototype !== undefined && prototype !== null) {
-			for (var name in prototype) {
-				Class.prototype[name] = (typeof prototype[name] === 'function' &&
-					superRegExp.test(prototype[name])) ?
-					defineSuper(prototype[name], this.prototype[name]) :
-					prototype[name];
-			}
+/**
+ * Creates a new function that defines super method in the original function.
+ * @param {Function} func
+ * @param {Function} superFunc
+ * @returns {Function}
+ */
+function defineSuper(func, superFunc) {
+	return function() {
+		var tmp = this.super;
+		this.super = superFunc;
+		var ret;
+		try {
+			ret = func.apply(this, arguments);
+		} finally {
+			this.super = tmp;
 		}
-		Class.extend = BaseClass.extend;
-		if (staticProperties !== undefined && staticProperties !== null) {
-			for (var name in staticProperties) {
-				Class[name] = staticProperties[name];
-			}
-		}
-		return Class;
+		return ret;
 	};
+};
 
-	/**
-	 * Extends constructor with new methods and properties and returns a new class.
-	 * @param {Function} constructor
-	 * @param {Object} [prototype]
-	 * @param {Object} [staticProperties]
-	 * @returns {Function}
-	 */
-	Class.extendConstructor = function(constructor, prototype, staticProperties) {
-		return Class.extend.call(constructor, prototype, staticProperties);
+/**
+ * Class with extend capabilities.
+ * @class Class
+ */
+var Class = function() {};
+var BaseClass = Class;
+
+/**
+ * Extends class with new methods and properties and returns a new class.
+ * @param {Object} [prototype]
+ * @param {Object} [staticProperties]
+ * @returns {Function}
+ */
+Class.extend = function(prototype, staticProperties) {
+	var Class = function() {
+		if (typeof this.constructor === 'function') {
+			this.constructor.apply(this, arguments);
+		}
 	};
-	
+	createObject.prototype = this.prototype;
+	Class.prototype = new createObject();
+	if (prototype !== undefined && prototype !== null) {
+		for (var name in prototype) {
+			Class.prototype[name] = (typeof prototype[name] === 'function' &&
+				superRegExp.test(prototype[name])) ?
+				defineSuper(prototype[name], this.prototype[name]) :
+				prototype[name];
+		}
+	}
+	Class.extend = BaseClass.extend;
+	if (staticProperties !== undefined && staticProperties !== null) {
+		for (var name in staticProperties) {
+			Class[name] = staticProperties[name];
+		}
+	}
 	return Class;
-});
+};
+
+/**
+ * Extends constructor with new methods and properties and returns a new class.
+ * @param {Function} constructor
+ * @param {Object} [prototype]
+ * @param {Object} [staticProperties]
+ * @returns {Function}
+ */
+Class.extendConstructor = function(constructor, prototype, staticProperties) {
+	return Class.extend.call(constructor, prototype, staticProperties);
+};
+	
+module.exports = Class;
